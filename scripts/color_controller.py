@@ -52,11 +52,11 @@ class color_controller():
         try:
             for blob in blobs.blobs:
                 #If this blob already exists, update our idea of it. Otherwise create another color_model.
-                if self.colors[blob.name]:
+                if blob.name in self.colors:
                     if (self.colors[blob.name].update(blob, self.depth_image, self.cam_model)):
                         wasUpdated = True
                 else:
-                    self.colors[blob.name] = color_model(blob, self.parent_frame, self.depth_image, self.camModel)
+                    self.colors[blob.name] = color_model(blob, self.parent_frame, self.depth_image, self.cam_model)
         
                 #Publish it whether it's been updated or not.
                 self.transforms.transforms.append(self.colors[blob.name].publish() )
@@ -72,7 +72,7 @@ class color_controller():
         self.depth_image = image_cv2
 
 
-    def camera_callback(self, info):
+    def camera_callback(self, cameraInfo):
         if not self.hasCameraInfo:
             self.cam_model.fromCameraInfo(cameraInfo)
         self.hasCameraInfo = True

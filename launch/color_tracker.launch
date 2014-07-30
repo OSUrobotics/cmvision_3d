@@ -4,7 +4,7 @@
         output="screen">
 	  <!-- Location of the cmvision color file -->
 	  <param name="color_file" type="string" 
-	         value="$(find 3d_cmvision)/colors/example.txt" />
+	         value="$(find cmvision_3d)/colors/example.txt" />
 
 	  <!-- Turn debug output on or off -->
 	  <param name="debug_on" type="bool" value="false"/>
@@ -22,12 +22,12 @@
 	  <param name="color_radius_pix" type="double" value="40.0"/>
   </node>
 
-  <node name="color_controller" pkg="3d_cmvision" type="color_controller.py">
+  <node name="color_controller" pkg="cmvision_3d" type="color_controller.py">
   		<param name="depth_image" value="camera/depth/image"/>
   		<param name="camera_topic" value="/camera/rgb/camera_info"/>
   		<param name="parent_frame" value="/camera_rgb_optical_frame"/>
   </node>
 
-  <node name="color_broadcaster" pkg="3d_cmvision" type="color_broadcaster.py"/>
+  <node name="color_broadcaster" pkg="cmvision_3d" type="color_broadcaster.py"/>
 
 </launch>

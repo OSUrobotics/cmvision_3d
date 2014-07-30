@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import tf
 from sensor_msgs.msg import Image, CameraInfo 
 from cmvision.msg import Blobs
 from tf2_msgs.msg import TFMessage
@@ -12,21 +13,22 @@ import numpy as np
 import copy
 
 class color_broadcaster():
-    def __init__(self):
+    def __init__(self, topic):
         self.sub = rospy.Subscriber(topic, TFMessage, self.tf_callback)
         self.broadcaster = tf.TransformBroadcaster()
+        self.transforms = TFMessage()
 
     def tf_callback(self, transforms): 
         self.transforms = transforms
 
 if __name__ == '__main__':
     rospy.init_node('color_broadcaster')
-    boundingBox = color_broadcaster('color_tracker/tf')
+    cb = color_broadcaster('color_tracker/tf')
     r = rospy.Rate(50.0)
     while not rospy.is_shutdown():
-        for transform in self.transforms.transforms:
+        for transform in cb.transforms.transforms:
             pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
             rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
-            self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
+            cb.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
 
     rospy.spin()
