@@ -1,3 +1,33 @@
 <launch>
 
+  <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=camera/rgb/image_color" 
+        output="screen">
+	  <!-- Location of the cmvision color file -->
+	  <param name="color_file" type="string" 
+	         value="$(find 3d_cmvision)/colors/example.txt" />
+
+	  <!-- Turn debug output on or off -->
+	  <param name="debug_on" type="bool" value="false"/>
+
+	  <!-- Turn color calibration on or off -->
+	  <param name="color_cal_on" type="bool" value="false"/>
+
+	  <!-- Enable Mean shift filtering -->
+	  <param name="mean_shift_on" type="bool" value="true"/>
+
+	  <!-- Spatial bandwidth: Bigger = smoother image -->
+	  <param name="spatial_radius_pix" type="double" value="2.0"/>
+
+	  <!-- Color bandwidth: Bigger = smoother image-->
+	  <param name="color_radius_pix" type="double" value="40.0"/>
+  </node>
+
+  <node name="color_controller" pkg="3d_cmvision" type="color_controller.py">
+  		<param name="depth_image" value="camera/depth/image"/>
+  		<param name="camera_topic" value="/camera/rgb/camera_info"/>
+  		<param name="parent_frame" value="/camera_rgb_optical_frame"/>
+  </node>
+
+  <node name="color_broadcaster" pkg="3d_cmvision" type="color_broadcaster.py"/>
+
 </launch>
