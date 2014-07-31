@@ -28,11 +28,12 @@ class color_controller():
 		#This package is just an extension of cmvision to provide tf tracking of the blobs provided by cmvision. 
 		rospy.Subscriber('blobs', Blobs, self.blob_callback)
 
-		rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
-		
+		#Subscribe to image for debugging.
+		# rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
 
 		#Send to our view.
 		self.view_pub = rospy.Publisher('color_tracker/tf', TFMessage)
+		# self.view_pub = rospy.Publisher('tf_static', TFMessage)
 
 		#To take our Ros Image into a cv message and subsequently a numpy array.
 		self.bridge = CvBridge()        
@@ -88,19 +89,19 @@ class color_controller():
 
 		listener = tf.TransformListener()
 		# listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
-		if listener.frameExists('/camera_rgb_optical_frame'):
-			(trans,rot) = listener.lookupTransform('/camera_rgb_optical_frame', '/green', rospy.Time())
-			projected = self.cam_model.project3dToPixel(trans)
-			point = (int(projected[0]), int(projected[1]))
-			point2 = (int(projected[0])+50, int(projected[1]) + 50)
-			cv2.rectangle(image_cv2, point, point2, -1, -1)
-			cv2.imshow('thing', image_cv2)
-			cv2.waitKey(3)
+		# if listener.frameExists('camera_rgb_optical_frame'):
+		(trans,rot) = listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
+		projected = self.cam_model.project3dToPixel(trans)
+		point = (int(projected[0]), int(projected[1]))
+		point2 = (int(projected[0])+50, int(projected[1]) + 50)
+		cv2.rectangle(image_cv2, point, point2, -1, -1)
+		cv2.imshow('thing', image_cv2)
+		cv2.waitKey(3)
 
 
 if __name__ == '__main__':
 	rospy.init_node('color_controller')
-	depth_image = rospy.get_param("color_controller/depth_image", "camera/depth/image")
+	depth_image = rospy.get_param("color_controller/depth_image", "camera/depth_registered/image_raw")
 	camera_topic = rospy.get_param("color_controller/camera_topic", '/camera/rgb/camera_info')
 	parent_frame = rospy.get_param("color_controller/parent_frame", '/camera_rgb_optical_frame')
 	my_controller = color_controller(depth_image, camera_topic, parent_frame)

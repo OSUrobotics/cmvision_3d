@@ -23,7 +23,7 @@
   </node>
 
   <node name="color_controller" pkg="cmvision_3d" type="color_controller.py">
-  		<param name="depth_image" value="camera/depth/image"/>
+  		<param name="depth_image" value="camera/depth_registered/image_raw"/>
   		<param name="camera_topic" value="/camera/rgb/camera_info"/>
   		<param name="parent_frame" value="/camera_rgb_optical_frame"/>
   </node>

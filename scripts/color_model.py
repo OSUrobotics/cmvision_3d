@@ -23,6 +23,7 @@ class color_model():
 		self.blob = blob
 		self.depth_image = depth_image
 		self.cam_model
+		return False
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
@@ -34,7 +35,7 @@ class color_model():
 	#Takes our data and makes a tf2 transform message.
 	def _toTransform(self):
 		transform = TransformStamped()
-		transform.header.stamp = rospy.Time.now()
+		# transform.header.stamp = rospy.Time.now()
 		transform.header.frame_id = self.parent_frame
 		transform.child_frame_id = self.blob.name
 
@@ -56,5 +57,5 @@ class color_model():
 		return (blob_x, blob_y, blob_z)
 
 	def _getDepthAt(self, x,y):
-		return self.depth_image[y][x]
+		return self.depth_image[y][x]/1000
 
