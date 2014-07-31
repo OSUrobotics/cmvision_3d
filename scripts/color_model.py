@@ -12,14 +12,17 @@ import numpy as np
 #The "model" part of our model-view-controller. 
 #Each color_model represents a color that we're tracking. When calling update(), you present new information.
 class color_model():
-	def __init__(self, blob, parent_frame, depth_image, cam_model):
+	def __init__(self, blob, camera_info, parent_frame, depth_image, cam_model):
 		self.blob = blob
 		self.parent_frame = parent_frame
 		self.depth_image = depth_image
+		self.camera_frame = camera_info.header.frame_id
 		self.cam_model = cam_model
 	#Updates the model with more information. Returns false if this information is rejected and true if this information is accepted.
-	def update(self, blob, depth_image, cam_model):
-		return True
+	def update(self, blob, depth_image):
+		self.blob = blob
+		self.depth_image = depth_image
+		self.cam_model
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
@@ -41,13 +44,14 @@ class color_model():
 		transform.transform.translation.z = z
 
 		transform.transform.rotation.w = 1.0
+		##TODO transform from self.camera_frame into self.pare
 		return transform
 
 	def _projectTo3d(self, x, y):
 		[vx,vy,vz] = self.cam_model.projectPixelTo3dRay((x,y))
 		blob_z = self._getDepthAt(x,y)
-		blob_x = vx * blob_z
-		blob_y = vy * blob_z
+		blob_x = vx 
+		blob_y = vy 
 
 		return (blob_x, blob_y, blob_z)
 

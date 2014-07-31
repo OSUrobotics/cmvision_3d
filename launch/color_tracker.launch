@@ -28,6 +28,6 @@
   		<param name="parent_frame" value="/camera_rgb_optical_frame"/>
   </node>
 
-  <node name="color_broadcaster" pkg="cmvision_3d" type="color_broadcaster.py"/>
+  <node name="color_broadcaster" pkg="cmvision_3d" type="color_broadcaster.py" output="screen"/>
 
 </launch>
