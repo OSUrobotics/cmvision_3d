@@ -29,7 +29,7 @@ class color_controller():
 		rospy.Subscriber('blobs', Blobs, self.blob_callback)
 
 		#Subscribe to image for debugging.
-		rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
+		# rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
 		self.listener = tf.TransformListener()
 
 

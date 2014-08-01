@@ -38,7 +38,6 @@ class color_model():
 	def update(self, blob, depth_image):
 		self.blob = blob
 		self.depth_image = depth_image
-		self.cam_model
 		return True
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
