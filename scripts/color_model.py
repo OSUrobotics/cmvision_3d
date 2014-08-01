@@ -23,7 +23,7 @@ class color_model():
 		self.blob = blob
 		self.depth_image = depth_image
 		self.cam_model
-		return False
+		return True
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
@@ -51,8 +51,8 @@ class color_model():
 	def _projectTo3d(self, x, y):
 		[vx,vy,vz] = self.cam_model.projectPixelTo3dRay((x,y))
 		blob_z = self._getDepthAt(x,y)
-		blob_x = vx 
-		blob_y = vy 
+		blob_x = vx * blob_z
+		blob_y = vy * blob_z
 
 		return (blob_x, blob_y, blob_z)
 

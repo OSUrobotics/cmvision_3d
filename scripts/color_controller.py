@@ -29,7 +29,9 @@ class color_controller():
 		rospy.Subscriber('blobs', Blobs, self.blob_callback)
 
 		#Subscribe to image for debugging.
-		# rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
+		rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
+		self.listener = tf.TransformListener()
+
 
 		#Send to our view.
 		self.view_pub = rospy.Publisher('color_tracker/tf', TFMessage)
@@ -87,14 +89,13 @@ class color_controller():
 		image_cv = self.bridge.imgmsg_to_cv(image, 'bgr8')
 		image_cv2 = np.array(image_cv, dtype=np.uint8)
 
-		listener = tf.TransformListener()
-		# listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
-		# if listener.frameExists('camera_rgb_optical_frame'):
-		(trans,rot) = listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
-		projected = self.cam_model.project3dToPixel(trans)
-		point = (int(projected[0]), int(projected[1]))
-		point2 = (int(projected[0])+50, int(projected[1]) + 50)
-		cv2.rectangle(image_cv2, point, point2, -1, -1)
+		# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
+		if self.listener.frameExists('green'):
+			(trans,rot) = self.listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
+			projected = self.cam_model.project3dToPixel(trans)
+			point = (int(projected[0]), int(projected[1]))
+			point2 = (int(projected[0])+50, int(projected[1]) + 50)
+			cv2.rectangle(image_cv2, point, point2, -1, -1)
 		cv2.imshow('thing', image_cv2)
 		cv2.waitKey(3)
 
