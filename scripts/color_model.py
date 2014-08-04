@@ -50,7 +50,7 @@ class color_model():
 	#Takes our data and makes a tf2 transform message.
 	def _toTransform(self):
 		transform = TransformStamped()
-		# transform.header.stamp = rospy.Time.now()
+		transform.header.stamp = rospy.Time.now()
 		transform.header.frame_id = self.camera_frame
 		transform.child_frame_id = self.blob.name
 
@@ -65,6 +65,7 @@ class color_model():
 		if self.parent_frame != self.camera_frame:
 			point = PointStamped()
 			point.header.frame_id = self.camera_frame
+			point.header.stamp = rospy.Time(0)
 			point.point.x = transform.transform.translation.x
 			point.point.y = transform.transform.translation.y
 			point.point.z = transform.transform.translation.z
