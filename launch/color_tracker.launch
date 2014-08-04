@@ -1,7 +1,17 @@
 <launch>
+	<arg name="image" default="camera/rgb/image_color"/>
+	<arg name="depth_image" default="camera/depth_registered/image_raw"/>
+	<arg name="camera_topic" default="/camera/rgb/camera_info"/>
+	
+	<!-- Do we want to decompress our depth and regular image? This is useful if you are not running on the robot itself. -->
+	<arg name="decompress" default="true"/> 
 
-  <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=camera/rgb/image_color" 
-        output="screen">
+<!-- Decompress image topics so that they aren't slower than turtles on heroin. -->
+  <node if="$(arg decompress)" name="color_transport" pkg="image_transport" type="republish" args="compressed in:=${arg image} out:=$(arg image)_republished"/>
+
+  <node if="$(arg decompress)" name="color_transport2" pkg="image_transport" type="republish" args="compressedDepth in:=$(arg depth_topic) out:=$(arg depth_image)_republished"/>
+
+  <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)_republished" output="screen">
 	  <!-- Location of the cmvision color file -->
 	  <param name="color_file" type="string" 
 	         value="$(find cmvision_3d)/colors/example.txt" />
@@ -22,9 +32,9 @@
 	  <param name="color_radius_pix" type="double" value="40.0"/>
   </node>
 
-  <node name="color_controller" pkg="cmvision_3d" type="color_controller.py">
-  		<param name="depth_image" value="camera/depth_registered/image_raw"/>
-  		<param name="camera_topic" value="/camera/rgb/camera_info"/>
+  <node name="color_controller" pkg="cmvision_3d" type="color_controller.py" output="screen">
+  		<param name="depth_image" value="$(arg depth_image)_republished"/>
+  		<param name="camera_topic" value="$(arg camera_topic)"/>
   		<param name="parent_frame" value="/camera_rgb_frame"/>
   </node>
 

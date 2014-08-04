@@ -74,9 +74,11 @@ class color_controller():
 			self.view_pub.publish(self.transforms)
 
 	def depth_callback(self, image):
-		image_cv = self.bridge.imgmsg_to_cv(image, '32FC1')
+		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
 		image_cv2 = np.array(image_cv, dtype=np.float32)
 		self.depth_image = image_cv2
+		# cv2.imshow("whatever", self.depth_image)
+		# cv2.waitKey(3)
 
 
 	def camera_callback(self, camera_info):
@@ -86,7 +88,7 @@ class color_controller():
 		self.hasCameraInfo = True
 		
 	def image_callback(self, image):
-		image_cv = self.bridge.imgmsg_to_cv(image, 'bgr8')
+		image_cv = self.bridge.imgmsg_to_cv(image, image.enconding)
 		image_cv2 = np.array(image_cv, dtype=np.uint8)
 
 		# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
