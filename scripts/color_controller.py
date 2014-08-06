@@ -18,25 +18,6 @@ from color_model import color_model
 #This package integrates cmvision with tf and localization; now we can track color in 3D.
 class color_controller():
 	def __init__(self, depth_topic, info_topic, parent_frame):
-		#We are using a depth image to get depth information of what we're tracking.
-		rospy.Subscriber(depth_topic, Image, self.depth_callback)
-
-		#We need CameraInfo in order to use PinholeCameraModel below.
-		rospy.Subscriber(info_topic, CameraInfo, self.camera_callback)
-		self.hasCameraInfo = False
-
-		#This package is just an extension of cmvision to provide tf tracking of the blobs provided by cmvision. 
-		rospy.Subscriber('blobs', Blobs, self.blob_callback)
-
-		#Subscribe to image for debugging.
-		# rospy.Subscriber('camera/rgb/image_color', Image, self.image_callback)
-		self.listener = tf.TransformListener()
-
-
-		#Send to our view.
-		self.view_pub = rospy.Publisher('color_tracker/tf', TFMessage)
-		# self.view_pub = rospy.Publisher('tf_static', TFMessage)
-
 		#To take our Ros Image into a cv message and subsequently a numpy array.
 		self.bridge = CvBridge()        
 
@@ -52,26 +33,39 @@ class color_controller():
 		#Keep track of our transforms to send them to color_broadcaster.
 		self.transforms = TFMessage()
 
+		#We are using a depth image to get depth information of what we're tracking.
+		rospy.Subscriber(depth_topic, Image, self.depth_callback)
+
+		#We need CameraInfo in order to use PinholeCameraModel below.
+		rospy.Subscriber(info_topic, CameraInfo, self.camera_callback)
+		self.hasCameraInfo = False
+
+		#This package is just an extension of cmvision to provide tf tracking of the blobs provided by cmvision. 
+		rospy.Subscriber('blobs', Blobs, self.blob_callback)
+
+		#Subscribe to image for debugging.
+		rospy.Subscriber('thing', Image, self.image_callback)
+		self.listener = tf.TransformListener()
+		self.broadcaster = tf.TransformBroadcaster()
+
+		#Send to our view.
+		self.view_pub = rospy.Publisher('color_tracker/tf', TFMessage)
+
 		#blobs is received from running cmvision. It's color blobs as defined by our color file.
 	def blob_callback(self, blobs):
 		self.transforms = TFMessage()
-		wasUpdated = False
-		try:
-			for blob in blobs.blobs:
-				#If this blob already exists, update our idea of it. Otherwise create another color_model.
-				if blob.name in self.colors:
-					wasUpdated = wasUpdated or self.colors[blob.name].update(blob, self.depth_image)
-				else:
-					self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model)
-					wasUpdated = True
+		for blob in blobs.blobs:
+			#If this blob already exists, update our idea of it. Otherwise create another color_model.
+			if blob.name in self.colors:
+				self.colors[blob.name].update(blob, self.depth_image)
+			else:
+				self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
 
-				#Publish it whether it's been updated or not.
-				self.transforms.transforms.append( self.colors[blob.name].publish() )
+		#Publish it whether it's been updated or not.
+		for color in self.colors:
+			self.colors[color].publish()
+		# self.view_pub.publish(self.transforms)
 
-		except():
-			pass
-		if wasUpdated:
-			self.view_pub.publish(self.transforms)
 
 	def depth_callback(self, image):
 		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
@@ -88,7 +82,7 @@ class color_controller():
 		self.hasCameraInfo = True
 		
 	def image_callback(self, image):
-		image_cv = self.bridge.imgmsg_to_cv(image, image.enconding)
+		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
 		image_cv2 = np.array(image_cv, dtype=np.uint8)
 
 		# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))

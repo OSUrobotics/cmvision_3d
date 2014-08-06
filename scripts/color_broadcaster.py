@@ -31,4 +31,4 @@ if __name__ == '__main__':
             rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
             cb.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
         r.sleep()
-    rospy.spin()
+    # rospy.spin()

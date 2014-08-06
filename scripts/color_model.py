@@ -14,7 +14,7 @@ import numpy as np
 #The "model" part of our model-view-controller. 
 #Each color_model represents a color that we're tracking. When calling update(), you present new information.
 class color_model():
-	def __init__(self, blob, camera_info, parent_frame, depth_image, cam_model):
+	def __init__(self, blob, camera_info, parent_frame, depth_image, cam_model, listener, broadcaster):
 		
 		#Our initial blob information.
 		self.blob = blob
@@ -32,7 +32,10 @@ class color_model():
 		self.cam_model = cam_model
 
 		#Listener is necessary to transform from camera_frame to parent_frame.
-		self.listener = tf.TransformListener()
+		self.listener = listener
+
+		#Broadcaster to publish the transforms.
+		self.broadcaster = broadcaster
 
 	#Updates the model with more information. Returns false if this information is rejected and true if this information is accepted.
 	def update(self, blob, depth_image):
@@ -42,7 +45,13 @@ class color_model():
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
-		return self._toTransform()
+		transform = self._toTransform()
+		pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+		rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
+
+		self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
+
+		return transform
 
 ## Private functions
 ## ^^^^^^^^^^^^^^^^^
