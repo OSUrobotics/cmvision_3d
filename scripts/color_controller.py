@@ -7,6 +7,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from tf2_msgs.msg import TFMessage
 from image_geometry import PinholeCameraModel
 from cmvision.msg import Blobs
+from cmvision_3d.msg import Blobs3d, Blob3d
 
 from cv_bridge import CvBridge
 
@@ -17,54 +18,57 @@ from color_model import color_model
 
 #This package integrates cmvision with tf and localization; now we can track color in 3D.
 class color_controller():
-	def __init__(self, depth_topic, info_topic, parent_frame):
+	def __init__(self, depth_topic, info_topic):
 		#To take our Ros Image into a cv message and subsequently a numpy array.
 		self.bridge = CvBridge()        
 
 		# To make the pixel to vector projection
 		self.cam_model = PinholeCameraModel()
 
-		#We are integrating cmvision with localization and thus want to know which frame we should put our colors into.
-		self.parent_frame = parent_frame
-
-		#array of our color_models.
-		self.colors = {}
 
 		#Keep track of our transforms to send them to color_broadcaster.
 		self.transforms = TFMessage()
-
-		#We are using a depth image to get depth information of what we're tracking.
-		rospy.Subscriber(depth_topic, Image, self.depth_callback)
 
 		#We need CameraInfo in order to use PinholeCameraModel below.
 		rospy.Subscriber(info_topic, CameraInfo, self.camera_callback)
 		self.hasCameraInfo = False
 
+		while not self.hasCameraInfo:
+			print "waiting on camera info."
+			rospy.sleep(0.5)
+
+		#We are using a depth image to get depth information of what we're tracking.
+		rospy.Subscriber(depth_topic, Image, self.depth_callback)
+
 		#This package is just an extension of cmvision to provide tf tracking of the blobs provided by cmvision. 
 		rospy.Subscriber('blobs', Blobs, self.blob_callback)
 
 		#Subscribe to image for debugging.
-		rospy.Subscriber('thing', Image, self.image_callback)
+		# rospy.Subscriber('thing', Image, self.image_callback)
 		self.listener = tf.TransformListener()
 		self.broadcaster = tf.TransformBroadcaster()
 
-		#Send to our view.
-		self.view_pub = rospy.Publisher('color_tracker/tf', TFMessage)
+		#Republish each blob as part of a blob.
+		self.blob_pub = rospy.Publisher('/blobs_3d', Blobs3d)
+
+		self.publish_tf = rospy.get_param('color_controller/publish_tf', True)
+
+
 
 		#blobs is received from running cmvision. It's color blobs as defined by our color file.
 	def blob_callback(self, blobs):
-		self.transforms = TFMessage()
+		#array of our color_models.
+		self.colors = {}
+		blobs3d = Blobs3d()
 		for blob in blobs.blobs:
-			#If this blob already exists, update our idea of it. Otherwise create another color_model.
-			if blob.name in self.colors:
-				self.colors[blob.name].update(blob, self.depth_image)
-			else:
-				self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
-
-		#Publish it whether it's been updated or not.
-		for color in self.colors:
-			self.colors[color].publish()
-		# self.view_pub.publish(self.transforms)
+			self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
+			if self.publish_tf:
+				self.colors[blob.name].publish()
+			blobs3d.blobs.append(self.colors[blob.name].toBlob3d())
+		blobs3d.header.frame_id = self.parent_frame
+		blobs3d.header.stamp = rospy.Time.now() 
+		blobs3d.blob_count = blobs.blob_count 
+		self.blob_pub.publish(blobs3d) 
 
 
 	def depth_callback(self, image):
@@ -79,28 +83,28 @@ class color_controller():
 		if not self.hasCameraInfo:
 			self.cam_model.fromCameraInfo(camera_info)
 			self.camera_info = camera_info
+			self.parent_frame = self.camera_info.header.frame_id
 		self.hasCameraInfo = True
 		
-	def image_callback(self, image):
-		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
-		image_cv2 = np.array(image_cv, dtype=np.uint8)
+	# def image_callback(self, image):
+	# 	image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
+	# 	image_cv2 = np.array(image_cv, dtype=np.uint8)
 
-		# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
-		if self.listener.frameExists('green'):
-			(trans,rot) = self.listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
-			projected = self.cam_model.project3dToPixel(trans)
-			point = (int(projected[0]), int(projected[1]))
-			point2 = (int(projected[0])+50, int(projected[1]) + 50)
-			cv2.rectangle(image_cv2, point, point2, -1, -1)
-		cv2.imshow('thing', image_cv2)
-		cv2.waitKey(3)
+	# 	# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
+	# 	if self.listener.frameExists('green'):
+	# 		(trans,rot) = self.listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
+	# 		projected = self.cam_model.project3dToPixel(trans)
+	# 		point = (int(projected[0]), int(projected[1]))
+	# 		point2 = (int(projected[0])+50, int(projected[1]) + 50)
+	# 		cv2.rectangle(image_cv2, point, point2, -1, -1)
+	# 	cv2.imshow('thing', image_cv2)
+	# 	cv2.waitKey(3)
 
 
 if __name__ == '__main__':
 	rospy.init_node('color_controller')
 	depth_image = rospy.get_param("color_controller/depth_image", "camera/depth_registered/image_raw")
 	camera_topic = rospy.get_param("color_controller/camera_topic", '/camera/rgb/camera_info')
-	parent_frame = rospy.get_param("color_controller/parent_frame", '/camera_rgb_optical_frame')
-	my_controller = color_controller(depth_image, camera_topic, parent_frame)
+	my_controller = color_controller(depth_image, camera_topic)
 
 	rospy.spin()

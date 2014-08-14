@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
 import rospy
 import tf
 
@@ -7,6 +6,7 @@ from image_geometry import PinholeCameraModel
 from geometry_msgs.msg import TransformStamped, PointStamped
 from tf2_msgs.msg import TFMessage
 from cmvision.msg import Blobs, Blob
+from cmvision_3d.msg import Blob3d
 
 import cv, cv2
 import numpy as np
@@ -52,6 +52,21 @@ class color_model():
 		self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
 
 		return transform
+	def toBlob3d(self):
+		blob3d = Blob3d()
+		
+		blob3d.name = self.blob.name
+		blob3d.red = self.blob.red
+		blob3d.green = self.blob.green
+		blob3d.blue = self.blob.blue
+		blob3d.area = self.blob.area
+
+		transform = self._toTransform()
+		blob3d.point.x = transform.transform.translation.x
+		blob3d.point.y = transform.transform.translation.y
+		blob3d.point.z = transform.transform.translation.z
+
+		return blob3d
 
 ## Private functions
 ## ^^^^^^^^^^^^^^^^^

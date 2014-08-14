@@ -1,7 +1,9 @@
 <launch>
 	<arg name="image" default="camera/rgb/image_color"/>
-	<arg name="depth_image" default="camera/depth/image"/>
+	<arg name="depth_image" default="camera/depth_registered/image_raw"/>
 	<arg name="camera_topic" default="/camera/rgb/camera_info"/>
+	<!-- Do we want to publish our blobs to tf? -->
+	<arg name="publish_tf" default="true"/>
 
 
   <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen">
@@ -28,7 +30,7 @@
   <node name="color_controller" pkg="cmvision_3d" type="color_controller.py" output="screen">
   		<param name="depth_image" value="$(arg depth_image)"/>
   		<param name="camera_topic" value="$(arg camera_topic)"/>
-  		<param name="parent_frame" value="/map"/>
+  		<param name="publish_tf" value="$(arg publish_tf)"/>
   </node>
 
   <!-- <node name="color_broadcaster" pkg="cmvision_3d" type="color_broadcaster.py" output="screen"/> -->
