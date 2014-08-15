@@ -26,10 +26,13 @@
 	  <!-- Color bandwidth: Bigger = smoother image-->
 	  <param name="color_radius_pix" type="double" value="40.0"/>
   </node>
-
+  <!-- color_controller conglomerates all the necessary info to publish /blobs_3d and optionally tf transforms for the colors. -->
   <node name="color_controller" pkg="cmvision_3d" type="color_controller.py" output="screen">
+		<!-- If we wish to project into the world we need depth information. -->
   		<param name="depth_image" value="$(arg depth_image)"/>
+  		<!--  Camera topic is also necessary for our PinholeCameraModel.-->
   		<param name="camera_topic" value="$(arg camera_topic)"/>
+  		<!-- Are we going our blobs to tf? -->
   		<param name="publish_tf" value="$(arg publish_tf)"/>
   </node>
 

@@ -2,6 +2,7 @@
 
 import rospy
 import tf
+import re
 
 from sensor_msgs.msg import Image, CameraInfo 
 from tf2_msgs.msg import TFMessage
@@ -61,11 +62,16 @@ class color_controller():
 		self.colors = {}
 		blobs3d = Blobs3d()
 
+		# if blob.name in self.colors:
+		# 	# TODO: allow for multiple catches.
+		# 	number = re.findall(r'\d+', blob.name)
+		# 	blob.name = 
 		for blob in blobs.blobs:
 			self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
 			
 			#Make sure this blob isn't shitty.
 			if self.colors[blob.name].validate():
+
 				#Publish to tf if master wishes it upon Dobby the programming elf.
 				if self.publish_tf:
 					self.colors[blob.name].publish()

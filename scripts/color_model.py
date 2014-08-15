@@ -40,12 +40,11 @@ class color_model():
 	
 	# Error checking for blob to see if it's worthwhile to even publish. Returns true if so.
 	def validate(self):
-		depth = self._getDepthAt(self.blob.x, self.blob.y)
-		if isnan(depth) or depth == 0:
-			return False
-		if self.blob.area == 0:
-			return False
-		return True
+		return ( self._validateDepthAt(self.blob.x, self.blob.y) and 
+				self._validateDepthAt(self.blob.left, self.blob.top) and 
+				self._validateDepthAt(self.blob.right, self.blob.bottom) )
+		
+		return False
 
 	#Updates the model with more information. Returns false if this information is rejected and true if this information is accepted.
 	def update(self, blob, depth_image):
@@ -55,11 +54,23 @@ class color_model():
 
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
-		transform = self._toTransform()
+		transform = self._toTransform(self.blob.x, self.blob.y)
 		pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
 		rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
 
 		self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
+
+		# transform = self._toTransform(self.blob.left, self.blob.top)
+		# pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+		# rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
+
+		# self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id + "_top_left", transform.header.frame_id)
+
+		# transform = self._toTransform(self.blob.right, self.blob.bottom)
+		# pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+		# rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
+
+		# self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id + "_bottom_right", transform.header.frame_id)
 
 		return transform
 	def toBlob3d(self):
@@ -71,10 +82,20 @@ class color_model():
 		blob3d.blue = self.blob.blue
 		blob3d.area = self.blob.area
 
-		transform = self._toTransform()
-		blob3d.point.x = transform.transform.translation.x
-		blob3d.point.y = transform.transform.translation.y
-		blob3d.point.z = transform.transform.translation.z
+		transform = self._toTransform(self.blob.x, self.blob.y)
+		blob3d.center.x = transform.transform.translation.x
+		blob3d.center.y = transform.transform.translation.y
+		blob3d.center.z = transform.transform.translation.z
+
+		transform = self._toTransform(self.blob.left, self.blob.top)
+		blob3d.top_left.x = transform.transform.translation.x
+		blob3d.top_left.y = transform.transform.translation.y
+		blob3d.top_left.z = transform.transform.translation.z
+
+		transform = self._toTransform(self.blob.right, self.blob.bottom)
+		blob3d.bottom_right.x = transform.transform.translation.x
+		blob3d.bottom_right.y = transform.transform.translation.y
+		blob3d.bottom_right.z = transform.transform.translation.z
 
 		return blob3d
 
@@ -82,13 +103,13 @@ class color_model():
 ## ^^^^^^^^^^^^^^^^^
 	
 	#Takes our data and makes a tf2 transform message.
-	def _toTransform(self):
+	def _toTransform(self, my_x, my_y):
 		transform = TransformStamped()
 		transform.header.stamp = rospy.Time.now()
 		transform.header.frame_id = self.camera_frame
 		transform.child_frame_id = self.blob.name
 
-		(x,y,z) = self._projectTo3d(self.blob.x, self.blob.y)
+		(x,y,z) = self._projectTo3d(my_x, my_y)
 		transform.transform.translation.x = x
 		transform.transform.translation.y = y
 		transform.transform.translation.z = z
@@ -124,4 +145,12 @@ class color_model():
 
 	def _getDepthAt(self, x,y):
 		return self.depth_image[y][x]/1000
+
+	def _validateDepthAt(self, x, y):
+		depth = self._getDepthAt(x, y)
+		if isnan(depth) or depth == 0:
+			return False
+		if self.blob.area == 0:
+			return False
+		return True		
 
