@@ -10,6 +10,7 @@ from cmvision_3d.msg import Blob3d
 
 import cv, cv2
 import numpy as np
+from math import isnan
 
 #The "model" part of our model-view-controller. 
 #Each color_model represents a color that we're tracking. When calling update(), you present new information.
@@ -36,6 +37,15 @@ class color_model():
 
 		#Broadcaster to publish the transforms.
 		self.broadcaster = broadcaster
+	
+	# Error checking for blob to see if it's worthwhile to even publish. Returns true if so.
+	def validate(self):
+		depth = self._getDepthAt(self.blob.x, self.blob.y)
+		if isnan(depth) or depth == 0:
+			return False
+		if self.blob.area == 0:
+			return False
+		return True
 
 	#Updates the model with more information. Returns false if this information is rejected and true if this information is accepted.
 	def update(self, blob, depth_image):

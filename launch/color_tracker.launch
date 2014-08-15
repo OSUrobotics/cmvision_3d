@@ -33,6 +33,4 @@
   		<param name="publish_tf" value="$(arg publish_tf)"/>
   </node>
 
-  <!-- <node name="color_broadcaster" pkg="cmvision_3d" type="color_broadcaster.py" output="screen"/> -->
-
 </launch>

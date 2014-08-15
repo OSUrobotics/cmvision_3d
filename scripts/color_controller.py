@@ -60,14 +60,21 @@ class color_controller():
 		#array of our color_models.
 		self.colors = {}
 		blobs3d = Blobs3d()
+
 		for blob in blobs.blobs:
 			self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
-			if self.publish_tf:
-				self.colors[blob.name].publish()
-			blobs3d.blobs.append(self.colors[blob.name].toBlob3d())
+			
+			#Make sure this blob isn't shitty.
+			if self.colors[blob.name].validate():
+				#Publish to tf if master wishes it upon Dobby the programming elf.
+				if self.publish_tf:
+					self.colors[blob.name].publish()
+				#3d blobs that are in this blobs3d list are published to the /blobs_3d topic. 
+				blobs3d.blobs.append(self.colors[blob.name].toBlob3d())
+
 		blobs3d.header.frame_id = self.parent_frame
 		blobs3d.header.stamp = rospy.Time.now() 
-		blobs3d.blob_count = blobs.blob_count 
+		blobs3d.blob_count = len(blobs3d.blobs) 
 		self.blob_pub.publish(blobs3d) 
 
 
@@ -75,8 +82,6 @@ class color_controller():
 		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
 		image_cv2 = np.array(image_cv, dtype=np.float32)
 		self.depth_image = image_cv2
-		# cv2.imshow("whatever", self.depth_image)
-		# cv2.waitKey(3)
 
 
 	def camera_callback(self, camera_info):
