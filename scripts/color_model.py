@@ -54,18 +54,6 @@ class color_model():
 
 		self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id, transform.header.frame_id)
 
-		# transform = self._toTransform(self.blob.left, self.blob.top)
-		# pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
-		# rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
-
-		# self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id + "_top_left", transform.header.frame_id)
-
-		# transform = self._toTransform(self.blob.right, self.blob.bottom)
-		# pos = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
-		# rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
-
-		# self.broadcaster.sendTransform(pos, rot, rospy.Time.now(), transform.child_frame_id + "_bottom_right", transform.header.frame_id)
-
 		return transform
 	def toBlob3d(self):
 		blob3d = Blob3d()

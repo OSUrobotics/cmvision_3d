@@ -95,21 +95,6 @@ class color_controller():
 			self.parent_frame = self.camera_info.header.frame_id
 		self.hasCameraInfo = True
 		
-	# def image_callback(self, image):
-	# 	image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
-	# 	image_cv2 = np.array(image_cv, dtype=np.uint8)
-
-	# 	# self.listener.waitForTransform('/camera_rgb_optical_frame', '/green', rospy.Time.now(), rospy.Duration(0.5))
-	# 	if self.listener.frameExists('green'):
-	# 		(trans,rot) = self.listener.lookupTransform( '/camera_rgb_optical_frame', '/green',  rospy.Time(0))
-	# 		projected = self.cam_model.project3dToPixel(trans)
-	# 		point = (int(projected[0]), int(projected[1]))
-	# 		point2 = (int(projected[0])+50, int(projected[1]) + 50)
-	# 		cv2.rectangle(image_cv2, point, point2, -1, -1)
-	# 	cv2.imshow('thing', image_cv2)
-	# 	cv2.waitKey(3)
-
-
 if __name__ == '__main__':
 	rospy.init_node('color_controller')
 	
