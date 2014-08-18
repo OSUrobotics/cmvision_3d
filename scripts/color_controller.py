@@ -26,10 +26,6 @@ class color_controller():
 		# To make the pixel to vector projection
 		self.cam_model = PinholeCameraModel()
 
-
-		#Keep track of our transforms to send them to color_broadcaster.
-		self.transforms = TFMessage()
-
 		#We need CameraInfo in order to use PinholeCameraModel below.
 		rospy.Subscriber(info_topic, CameraInfo, self.camera_callback)
 		self.hasCameraInfo = False
@@ -62,19 +58,21 @@ class color_controller():
 		self.colors = {}
 		blobs3d = Blobs3d()
 
-		# if blob.name in self.colors:
-		# 	# TODO: allow for multiple catches.
-		# 	number = re.findall(r'\d+', blob.name)
-		# 	blob.name = 
 		for blob in blobs.blobs:
+			#If we have multiple catches of a single color, we only want to publish the one with the maximum area. Fortunately they are sorted as such.
+			already_published = False
+			if blob.name in self.colors:
+				already_published = True
+
 			self.colors[blob.name] = color_model(blob, self.camera_info, self.parent_frame, self.depth_image, self.cam_model, self.listener, self.broadcaster)
 			
 			#Make sure this blob isn't shitty.
 			if self.colors[blob.name].validate():
 
 				#Publish to tf if master wishes it upon Dobby the programming elf.
-				if self.publish_tf:
+				if self.publish_tf and not already_published:
 					self.colors[blob.name].publish()
+
 				#3d blobs that are in this blobs3d list are published to the /blobs_3d topic. 
 				blobs3d.blobs.append(self.colors[blob.name].toBlob3d())
 

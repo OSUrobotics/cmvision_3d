@@ -32,7 +32,7 @@
   		<param name="depth_image" value="$(arg depth_image)"/>
   		<!--  Camera topic is also necessary for our PinholeCameraModel.-->
   		<param name="camera_topic" value="$(arg camera_topic)"/>
-  		<!-- Are we going our blobs to tf? -->
+  		<!-- Are we going our blobs to tf? NOTE: If there are multiple catches for a single color, it only publishes the one with the largest area. -->
   		<param name="publish_tf" value="$(arg publish_tf)"/>
   </node>
 
