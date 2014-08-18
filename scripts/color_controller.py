@@ -19,7 +19,7 @@ from color_model import color_model
 
 #This package integrates cmvision with tf and localization; now we can track color in 3D.
 class color_controller():
-	def __init__(self, depth_topic, info_topic):
+	def __init__(self, publish_tf):
 		#To take our Ros Image into a cv message and subsequently a numpy array.
 		self.bridge = CvBridge()        
 
@@ -27,7 +27,7 @@ class color_controller():
 		self.cam_model = PinholeCameraModel()
 
 		#We need CameraInfo in order to use PinholeCameraModel below.
-		rospy.Subscriber(info_topic, CameraInfo, self.camera_callback)
+		rospy.Subscriber("camera_topic", CameraInfo, self.camera_callback)
 		self.hasCameraInfo = False
 
 		while not self.hasCameraInfo:
@@ -35,7 +35,7 @@ class color_controller():
 			rospy.sleep(0.5)
 
 		#We are using a depth image to get depth information of what we're tracking.
-		rospy.Subscriber(depth_topic, Image, self.depth_callback)
+		rospy.Subscriber("depth_image", Image, self.depth_callback)
 
 		#This package is just an extension of cmvision to provide tf tracking of the blobs provided by cmvision. 
 		rospy.Subscriber('blobs', Blobs, self.blob_callback)
@@ -48,7 +48,7 @@ class color_controller():
 		#Republish each blob as part of a blob.
 		self.blob_pub = rospy.Publisher('/blobs_3d', Blobs3d)
 
-		self.publish_tf = rospy.get_param('color_controller/publish_tf', True)
+		self.publish_tf = publish_tf
 
 
 
@@ -112,8 +112,8 @@ class color_controller():
 
 if __name__ == '__main__':
 	rospy.init_node('color_controller')
-	depth_image = rospy.get_param("color_controller/depth_image", "camera/depth_registered/image_raw")
-	camera_topic = rospy.get_param("color_controller/camera_topic", '/camera/rgb/camera_info')
-	my_controller = color_controller(depth_image, camera_topic)
+	
+	publish_tf = rospy.get_param('color_controller/publish_tf', True)
+	my_controller = color_controller(publish_tf)
 
 	rospy.spin()

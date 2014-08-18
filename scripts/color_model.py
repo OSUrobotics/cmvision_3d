@@ -46,12 +46,6 @@ class color_model():
 		
 		return False
 
-	#Updates the model with more information. Returns false if this information is rejected and true if this information is accepted.
-	def update(self, blob, depth_image):
-		self.blob = blob
-		self.depth_image = depth_image
-		return True
-
 	#Publishes to our view, color_broadcaster, if the model updates. 
 	def publish(self):
 		transform = self._toTransform(self.blob.x, self.blob.y)
