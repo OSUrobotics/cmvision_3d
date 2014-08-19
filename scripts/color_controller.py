@@ -2,10 +2,8 @@
 
 import rospy
 import tf
-import re
 
 from sensor_msgs.msg import Image, CameraInfo 
-from tf2_msgs.msg import TFMessage
 from image_geometry import PinholeCameraModel
 from cmvision.msg import Blobs
 from cmvision_3d.msg import Blobs3d, Blob3d
@@ -14,7 +12,6 @@ from cv_bridge import CvBridge
 
 import cv, cv2
 import numpy as np
-import copy
 from color_model import color_model
 
 #This package integrates cmvision with tf and localization; now we can track color in 3D.

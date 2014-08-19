@@ -4,11 +4,9 @@ import tf
 
 from image_geometry import PinholeCameraModel
 from geometry_msgs.msg import TransformStamped, PointStamped
-from tf2_msgs.msg import TFMessage
 from cmvision.msg import Blobs, Blob
 from cmvision_3d.msg import Blob3d
 
-import cv, cv2
 import numpy as np
 from math import isnan
 
