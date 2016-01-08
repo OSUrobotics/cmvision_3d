@@ -80,8 +80,8 @@ class color_controller():
 
 
 	def depth_callback(self, image):
-		image_cv = self.bridge.imgmsg_to_cv(image, image.encoding)
-		image_cv2 = np.array(image_cv, dtype=np.float32)
+		image_cv = self.bridge.imgmsg_to_cv2(image, image.encoding)
+		image_cv2 = np.squeeze(np.array(image_cv, dtype=np.float32))
 		self.depth_image = image_cv2
 
 
